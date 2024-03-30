@@ -1,7 +1,20 @@
 import java.util.Objects;
 
 public class Board {
-    String[][] board = new String[9][10];
+    Marker[][] board = new Marker[9][10];
+
+    public enum Marker{
+        B("_"), X("X"), O("O"), XW("X Win"), OW("O Win"), T("Tie"), N("Niether");
+
+        Marker(String v){
+            value = v;
+        }
+        private String value;
+
+        public String getValue(){
+            return value;
+        }
+    }
 
     public Board() {
         /* {index in inner ArrayList (index outer ArrayList)}
@@ -22,49 +35,104 @@ public class Board {
          */
         for (int i = 0; i <= 8; i++) {
             for (int j = 0; j <= 8; j++) {
-                this.board[i][j] = "_";
+                this.board[i][j] = Marker.B;
             }
-            this.board[i][9] = "F";
+            this.board[i][9] = Marker.N;
         }
     }
 
-    void displayBoard() {
+    public void displayBoard() {
         // Print out the board in readable text format
         System.out.println("\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀");
         for (int i = 0; i <= 8; i += 3) { // Loop games in groups of 3 (outer list)
             for (int j = 0; j <= 8; j += 3) {
                 System.out.println(
-                        this.board[i][j] + " " + this.board[i][j + 1] + " " + this.board[i][j + 2] + " █ " +
-                                this.board[i + 1][j] + " " + this.board[i + 1][j + 1] + " " + this.board[i + 1][j + 2] + " █ " +
-                                this.board[i + 2][j] + " " + this.board[i + 2][j + 1] + " " + this.board[i + 2][j + 2]);
+                        this.board[i][j].getValue() + " " + this.board[i][j + 1].getValue() + " " + this.board[i][j + 2].getValue() + " █ " +
+                                this.board[i + 1][j].getValue() + " " + this.board[i + 1][j + 1].getValue() + " " + this.board[i + 1][j + 2].getValue() + " █ " +
+                                this.board[i + 2][j].getValue() + " " + this.board[i + 2][j + 1].getValue() + " " + this.board[i + 2][j + 2].getValue());
             }
             System.out.println("▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀");
         }
     }
 
-    void setPosition(int posOuter, int posInner, String marker) {
+    public void setPosition(int posOuter, int posInner, Marker marker) {
         /*
            Sets any place on the board
            posOuter: Outer/big board game, 0-8
            posInner: Inner/small board game, 0-8
-           marker: X or O string
+           marker: Marker either X or O
         */
-        // Error check insertion string
 
         // Only run if inserting into empty space in non won board
-        if (Objects.equals(this.board[posOuter][posInner], "_") && Objects.equals(this.board[posOuter][9], "F")) {
+        if (Objects.equals(this.board[posOuter][posInner], Marker.B) && Objects.equals(this.board[posOuter][9], Marker.N)) {
             this.board[posOuter][posInner] = marker;
             // Check for game win here, check by using the position of the last move from this context and see if there are lines present in its row, column, or diag
-            if(isDone(posOuter)) {
-                this.board[posOuter][9] = "T";
-            }
+
         }
     }
-    private Boolean isDone(int posOuter){
-        /*
-           Helper method that checks a T3 game to be done, runs after every move
-           posOuter: index of inner game on the outer game
-        */
 
+    // IMPORTED CODE, MUST EDIT TO FIT IN
+
+    public static int checkWinner(int[] board) {
+        // Check rows, columns, and diagonals for completion
+        int winner = checkRows(board);
+        if (winner != 0) {
+            return winner;
+        }
+
+        winner = checkColumns(board);
+        if (winner != 0) {
+            return winner;
+        }
+
+        winner = checkDiagonals(board);
+        if (winner != 0) {
+            return winner;
+        }
+
+        // Check for tie
+        if (isTie(board)) {
+            return -1; // Tie
+        }
+
+        return 0; // No winner yet
+    }
+
+    private static int checkRows(int[] board) {
+        for (int i = 0; i < 3; i++) {
+            int startIndex = i * 3;
+            if (board[startIndex] != 0 && board[startIndex] == board[startIndex + 1] && board[startIndex] == board[startIndex + 2]) {
+                return board[startIndex]; // Return the winning player number
+            }
+        }
+        return 0; // No winner in rows
+    }
+
+    private static int checkColumns(int[] board) {
+        for (int i = 0; i < 3; i++) {
+            if (board[i] != 0 && board[i] == board[i + 3] && board[i] == board[i + 6]) {
+                return board[i]; // Return the winning player number
+            }
+        }
+        return 0; // No winner in columns
+    }
+
+    private static int checkDiagonals(int[] board) {
+        if (board[0] != 0 && board[0] == board[4] && board[0] == board[8]) {
+            return board[0]; // Return the winning player number
+        }
+        if (board[2] != 0 && board[2] == board[4] && board[2] == board[6]) {
+            return board[2]; // Return the winning player number
+        }
+        return 0; // No winner in diagonals
+    }
+
+    private static boolean isTie(int[] board) {
+        for (int cell : board) {
+            if (cell == 0) {
+                return false; // There is an empty cell, game not tied yet
+            }
+        }
+        return true; // All cells filled, game tied
     }
 }

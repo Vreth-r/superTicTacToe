@@ -3,7 +3,7 @@ public class Main {
     public static void main(String[] args) {
         Board board = new Board();
         board.displayBoard();
-        board.setPosition(0, 1, "X");
+        board.setPosition(0, 1, Board.Marker.X);
         board.displayBoard();
     }
 
