@@ -1,10 +1,11 @@
 import java.util.Objects;
+import java.util.Objects.*;
 
 public class Board {
     Marker[][] board = new Marker[9][10];
 
     public enum Marker{
-        B("_"), X("X"), O("O"), XW("X Win"), OW("O Win"), T("Tie"), N("Niether");
+        B("_"), X("X"), O("O"), XW("X Win"), OW("O Win"), T("Tie"), N("Neither");
 
         Marker(String v){
             value = v;
@@ -67,69 +68,72 @@ public class Board {
         if (Objects.equals(this.board[posOuter][posInner], Marker.B) && Objects.equals(this.board[posOuter][9], Marker.N)) {
             this.board[posOuter][posInner] = marker;
             // Check for game win here, check by using the position of the last move from this context and see if there are lines present in its row, column, or diag
+            Marker result = checkWinner(posOuter);
 
+            // Check for winner and declare status
+            if(Objects.equals(result, Marker.X)){this.board[posOuter][9] = Marker.XW; System.out.println("X Wins");}
+            else if(Objects.equals(result, Marker.O)){this.board[posOuter][9] = Marker.OW; System.out.println("O Wins");}
+            else if(Objects.equals(result, Marker.T)){this.board[posOuter][9] = Marker.T; System.out.println("Tie");}
         }
     }
 
-    // IMPORTED CODE, MUST EDIT TO FIT IN
-
-    public static int checkWinner(int[] board) {
+    public Marker checkWinner(int posOuter) {
         // Check rows, columns, and diagonals for completion
-        int winner = checkRows(board);
-        if (winner != 0) {
+        Marker winner = checkRows(this.board[posOuter]);
+        if (!Objects.equals(winner, Marker.N)) {
             return winner;
         }
 
-        winner = checkColumns(board);
-        if (winner != 0) {
+        winner = checkColumns(this.board[posOuter]);
+        if (!Objects.equals(winner, Marker.N)) {
             return winner;
         }
 
-        winner = checkDiagonals(board);
-        if (winner != 0) {
+        winner = checkDiagonals(this.board[posOuter]);
+        if (!Objects.equals(winner, Marker.N)) {
             return winner;
         }
 
         // Check for tie
-        if (isTie(board)) {
-            return -1; // Tie
+        if (isTie(this.board[posOuter])) {
+            return Marker.T; // Tie
         }
 
-        return 0; // No winner yet
+        return Marker.N; // No winner yet
     }
 
-    private static int checkRows(int[] board) {
+    private Marker checkRows(Marker[] board) {
         for (int i = 0; i < 3; i++) {
             int startIndex = i * 3;
-            if (board[startIndex] != 0 && board[startIndex] == board[startIndex + 1] && board[startIndex] == board[startIndex + 2]) {
+            if (!Objects.equals(board[startIndex], Marker.B) && Objects.equals(board[startIndex], board[startIndex + 1]) && Objects.equals(board[startIndex], board[startIndex + 2])) {
                 return board[startIndex]; // Return the winning player number
             }
         }
-        return 0; // No winner in rows
+        return Marker.N; // No winner in rows
     }
 
-    private static int checkColumns(int[] board) {
+    private Marker checkColumns(Marker[] board) {
         for (int i = 0; i < 3; i++) {
-            if (board[i] != 0 && board[i] == board[i + 3] && board[i] == board[i + 6]) {
+            if (!Objects.equals(board[i], Marker.B) && Objects.equals(board[i], board[i + 3]) && Objects.equals(board[i], board[i + 6])) {
                 return board[i]; // Return the winning player number
             }
         }
-        return 0; // No winner in columns
+        return Marker.N; // No winner in columns
     }
 
-    private static int checkDiagonals(int[] board) {
-        if (board[0] != 0 && board[0] == board[4] && board[0] == board[8]) {
+    private Marker checkDiagonals(Marker[] board) {
+        if (!Objects.equals(board[0], Marker.B) && Objects.equals(board[0], board[4]) && Objects.equals(board[0], board[8])) {
             return board[0]; // Return the winning player number
         }
-        if (board[2] != 0 && board[2] == board[4] && board[2] == board[6]) {
+        if (!Objects.equals(board[2], Marker.B) && Objects.equals(board[2], board[4]) && Objects.equals(board[2], board[6])) {
             return board[2]; // Return the winning player number
         }
-        return 0; // No winner in diagonals
+        return Marker.N; // No winner in diagonals
     }
 
-    private static boolean isTie(int[] board) {
-        for (int cell : board) {
-            if (cell == 0) {
+    private boolean isTie(Marker[] board) {
+        for (Marker cell : board) {
+            if (Objects.equals(cell, Marker.B)) {
                 return false; // There is an empty cell, game not tied yet
             }
         }
