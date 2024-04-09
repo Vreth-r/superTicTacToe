@@ -8,6 +8,7 @@ public class ST3GUI extends JFrame implements ActionListener {
     private JButton[][] buttons;
     private Board board;
     private Board.Marker turn;
+    private int status;
 
     public ST3GUI() {
         setTitle("Super Tic Tac Toe");
@@ -35,16 +36,28 @@ public class ST3GUI extends JFrame implements ActionListener {
         setVisible(true); // Make the window visible
     }
 
-    // ActionListener implementation
     public void actionPerformed(ActionEvent e) {
+        /*
+            Listens for actions on the GUI, will be a button press
+         */
         JButton button = (JButton) e.getSource(); // Get whatever button was clicked
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++){
                 if(button == buttons[i][j]){ // Find co-ords of button clicked for cross-referencing into board object
                     if(board.setPosition(i, j, turn)){ // Attempt to set position
-                        // TODO: it might be better practice to change the return of setPosition to be true if it was successful or elligible and have
-                        // the game win be through a different system
-                    } else {
+                        status = board.isGameDone(i);
+                        switch(status){ // Cases for each outcome of isGameDone (see its docs)
+                            case 2: // If Board complete
+
+                                break;
+                            case 1: // If inner game complete
+
+                                break;
+                            case 0: // If nothing completed
+
+                                break;
+                        }
+                    } else { // If invalid
 
                     }
                 }

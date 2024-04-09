@@ -42,7 +42,9 @@ public class Board {
     }
 
     public void displayBoard() {
-        // Print out the board in readable text format
+        /*
+            Print out the board in readable text format
+        */
         System.out.println("\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀");
         for (int i = 0; i <= 8; i += 3) { // Loop games in groups of 3 (outer list)
             for (int j = 0; j <= 8; j += 3) {
@@ -61,9 +63,9 @@ public class Board {
     }
     public boolean setPosition(int posOuter, int posInner, Marker marker) {
         /*
-           Sets any place on the board, runs checks if inner games are completed and if the outer game is completed for each move
-                If an inner game is completed (and nothing else), return false and do nothing
-                If the outer game is completed upon the completion of an inner game, return true to signal game end
+           Sets any place on the board,
+                returns true if placement is valid and successful
+                returns false if placement is invalid and did not occur
            posOuter: Outer/big board game, 0-8
            posInner: Inner/small board game, 0-8
            marker: Marker either X or O
@@ -72,31 +74,43 @@ public class Board {
         // Only run if inserting into empty space in non won board
         if (!isPositionPlayable(posOuter, posInner)) {return false;}
         this.board[posOuter][posInner] = marker; // Edit board
+        return true;
+    }
 
-        // Checks for inner game win
-        Marker result = checkWinner(this.board[posOuter]);
+    public int isGameDone(int posOuter){
+        /*
+            Checks an inner game for completion,
+                if complete, check if the entire board is complete
+                return 0 if the inner game didnt complete
+                return 1 if the inner game did complete
+                return 2 if the outer board is complete
+            posOuter: Outer/big board game, 0-8
+        */
+        int returnCode = 0;
+        Marker result = checkWinner(this.board[posOuter]); // Checks for inner game win
 
-        // If an inner game is won
-        if(!Objects.equals(result, Marker.N)){
-            // Check for winner and declare status (NOTE: remove the string printing when GUI implemented)
-            this.board[posOuter][9] = result;
-            System.out.println(result.getValue());
+        if(!Objects.equals(result, Marker.N)){ // If the inner game is won
+            returnCode = 1;
+            this.board[posOuter][9] = result; // Dump the winners marker into the status index
 
-            // Check the outer game status
-            Marker[] outerGamesResults = new Marker[9];
+            Marker[] outerGamesResults = new Marker[9]; // Check the outer game status
 
-            // Grab all results of games
-            for(int i = 0; i <= 8; i++){
+            for(int i = 0; i <= 8; i++){ // Grab all results of games
                 outerGamesResults[i] = this.board[i][9];
             }
             Marker outerResult = checkWinner(outerGamesResults);
-            return Objects.equals(outerResult, Marker.N); // Returns if whole game is won
+            if(!Objects.equals(outerResult, Marker.N)) {returnCode = 2;} // if condition is if the outer game is completed, updates return code
         }
-        return false;
+        return returnCode;
     }
 
     public Marker checkWinner(Marker[] board) {
-        // Check rows, columns, and diagonals for completion
+        /*
+            Checks the rows, columns, and diagonals for the winning marker, or if there is a tie
+                The private helper methods will return the winning marker if it exists, and the neither marker otherwise
+                This allows this method to check the inner games and the outer game
+            board: a Marker list, will either be an inner game or a list containing all the status of the inner games
+         */
         Marker winner = checkRows(board);
         if (!Objects.equals(winner, Marker.N)) {
             return winner;
