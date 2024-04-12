@@ -1,13 +1,17 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Objects;
+
 public class ST3GUI extends JFrame implements ActionListener {
     private final int BOARD_SIZE = 9;
     private final int WIN_SIZE = 600;
     private JPanel[] innerGames;
     private JButton[][] buttons;
+    private JLabel statusMessage;
     private Board board;
     private Board.Marker turn;
+    private Color turnColor;
     private int status;
 
     public ST3GUI() {
@@ -15,24 +19,27 @@ public class ST3GUI extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridLayout(3, 3));
 
-        innerGames = new JPanel[BOARD_SIZE];
-        buttons = new JButton[BOARD_SIZE][BOARD_SIZE];
-        board = new Board();
-        turn = Board.Marker.X;
+        this.innerGames = new JPanel[BOARD_SIZE];
+        this.statusMessage = new JLabel("SUPER TIC TAC TOE!!!!!!!!");
+        this.statusMessage.setHorizontalAlignment(SwingConstants.CENTER);
+        this.buttons = new JButton[BOARD_SIZE][BOARD_SIZE];
+        this.board = new Board();
+        this.turn = Board.Marker.X;
+        this.turnColor = Color.red;
 
         // Initialize the main board
         for (int i = 0; i < BOARD_SIZE; i++) {
-            innerGames[i] = new JPanel(new GridLayout(3, 3));
+            this.innerGames[i] = new JPanel(new GridLayout(3, 3));
             for (int j = 0; j < BOARD_SIZE; j++) {
-                    buttons[i][j] = new JButton(Board.Marker.B.getValue()); // Set all to blanks
-                    buttons[i][j].setBackground(Color.lightGray); // Set all to light grey
-                    buttons[i][j].addActionListener(this);
-                    innerGames[i].add(buttons[i][j]);
+                    this.buttons[i][j] = new JButton(Board.Marker.B.getValue()); // Set all to blanks
+                    this.buttons[i][j].setBackground(Color.lightGray); // Set all to light grey
+                    this.buttons[i][j].addActionListener(this);
+                    this.innerGames[i].add(buttons[i][j]);
             }
-            add(innerGames[i]);
+            add(this.innerGames[i]);
         }
 
-        setSize(WIN_SIZE, WIN_SIZE); // Set window size
+        setSize(WIN_SIZE, WIN_SIZE+200); // Set window size
         setVisible(true); // Make the window visible
     }
 
@@ -44,9 +51,9 @@ public class ST3GUI extends JFrame implements ActionListener {
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++){
                 if(button == buttons[i][j]){ // Find co-ords of button clicked for cross-referencing into board object
-                    if(board.setPosition(i, j, turn)){ // Attempt to set position
-                        status = board.isGameDone(i);
-                        switch(status){ // Cases for each outcome of isGameDone (see its docs)
+                    if(this.board.setPosition(i, j, this.turn)){ // Attempt to set position
+                        this.status = this.board.isGameDone(i);
+                        switch(this.status){ // Cases for each outcome of isGameDone (see its docs)
                             case 2: // If Board complete
 
                                 break;
@@ -54,20 +61,25 @@ public class ST3GUI extends JFrame implements ActionListener {
 
                                 break;
                             case 0: // If nothing completed
+                                button.setText(this.turn.getValue()); // Set visuals
+                                button.setBackground(this.turnColor);
+                                button.setEnabled(false); // turn button off once pressed
 
+                                if(Objects.equals(turn, Board.Marker.X)){ // Flip turn/color
+                                    this.turn = Board.Marker.O;
+                                    this.turnColor = Color.blue;
+                                }else{
+                                    this.turn = Board.Marker.X;
+                                    this.turnColor = Color.red;
+                                }
+                                this.statusMessage.setText(this.turn.getValue() + "'s Turn"); // Set turn message
                                 break;
                         }
                     } else { // If invalid
-
+                        this.statusMessage.setText("Invalid move, try again");
                     }
                 }
             }
         }
-        // Handle button click event
-        button.setText("X"); // For demonstration, always set X
-        button.setBackground(Color.red);
-        button.setEnabled(false); // Disable button after click
-        // Here, you'd handle the game logic (e.g., checking for win/draw)
-        return;
     }
 }

@@ -2,6 +2,7 @@ import java.util.Objects;
 
 public class Board {
     Marker[][] board = new Marker[9][10];
+    int gameToPlay;
 
     public enum Marker{
         B("_"), X("X"), O("O"), T("Tie"), N("Neither");
@@ -39,6 +40,8 @@ public class Board {
             }
             this.board[i][9] = Marker.N;
         }
+
+        this.gameToPlay = -1; // Keeps track of the last outer game, -1 to start, as the starting player can choose any board to play in
     }
 
     public void displayBoard() {
@@ -58,7 +61,20 @@ public class Board {
     }
 
     public boolean isPositionPlayable(int posOuter, int posInner) {
-        return Objects.equals(this.board[posOuter][posInner], Marker.B) && Objects.equals(this.board[posOuter][9], Marker.N);
+        /*
+            Determines if the position is playable according to ST3 rules
+                The starting player may start in any game they wish,
+                every turn afterward must play in the outer game corresponding to the space played in the inner game
+                (ex: if they started in the middle game's top right space, the other player can play in any space in the top right game)
+
+
+        */
+        boolean isSpaceEmpty = Objects.equals(this.board[posOuter][posInner], Marker.B) && Objects.equals(this.board[posOuter][9], Marker.N);
+        boolean validGame = false;
+        if(this.gameToPlay == -1 || this.gameToPlay == posOuter){ // is it the first turn or is this game the game to play
+            validGame = true;
+        }
+        return isSpaceEmpty && validGame;
 
     }
     public boolean setPosition(int posOuter, int posInner, Marker marker) {
@@ -74,6 +90,7 @@ public class Board {
         // Only run if inserting into empty space in non won board
         if (!isPositionPlayable(posOuter, posInner)) {return false;}
         this.board[posOuter][posInner] = marker; // Edit board
+        this.gameToPlay = posInner; // Set the game to play
         return true;
     }
 
