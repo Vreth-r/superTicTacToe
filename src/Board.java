@@ -41,12 +41,13 @@ public class Board {
             this.board[i][9] = Marker.N;
         }
 
-        this.gameToPlay = -1; // Keeps track of the last outer game, -1 to start, as the starting player can choose any board to play in
+        this.gameToPlay = -1; // Keeps track of the last inner game, -1 means any game can be played in
     }
 
     public void displayBoard() {
         /*
             Print out the board in readable text format
+            TO BE DELETED
         */
         System.out.println("\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀");
         for (int i = 0; i <= 8; i += 3) { // Loop games in groups of 3 (outer list)
@@ -60,6 +61,10 @@ public class Board {
         }
     }
 
+    public int getGameToPlay(){
+        return this.gameToPlay;
+    }
+
     public boolean isPositionPlayable(int posOuter, int posInner) {
         /*
             Determines if the position is playable according to ST3 rules
@@ -70,13 +75,11 @@ public class Board {
 
         */
         boolean isSpaceEmpty = Objects.equals(this.board[posOuter][posInner], Marker.B) && Objects.equals(this.board[posOuter][9], Marker.N);
-        boolean validGame = false;
-        if(this.gameToPlay == -1 || this.gameToPlay == posOuter){ // is it the first turn or is this game the game to play
-            validGame = true;
-        }
+        boolean validGame = this.gameToPlay == -1 || this.gameToPlay == posOuter; // is it the first turn or is this game the game to play
         return isSpaceEmpty && validGame;
 
     }
+
     public boolean setPosition(int posOuter, int posInner, Marker marker) {
         /*
            Sets any place on the board,
@@ -99,15 +102,16 @@ public class Board {
             Checks an inner game for completion,
                 if complete, check if the entire board is complete
                 return 0 if the inner game didnt complete
-                return 1 if the inner game did complete
+                return 1 if the inner game is complete
                 return 2 if the outer board is complete
             posOuter: Outer/big board game, 0-8
         */
         int returnCode = 0;
-        Marker result = checkWinner(this.board[posOuter]); // Checks for inner game win
+        Marker result = checkWinner(this.board[posOuter], Marker.B); // Checks for inner game win
 
         if(!Objects.equals(result, Marker.N)){ // If the inner game is won
             returnCode = 1;
+            this.gameToPlay = -1;
             this.board[posOuter][9] = result; // Dump the winners marker into the status index
 
             Marker[] outerGamesResults = new Marker[9]; // Check the outer game status
@@ -115,13 +119,13 @@ public class Board {
             for(int i = 0; i <= 8; i++){ // Grab all results of games
                 outerGamesResults[i] = this.board[i][9];
             }
-            Marker outerResult = checkWinner(outerGamesResults);
+            Marker outerResult = checkWinner(outerGamesResults, Marker.N);
             if(!Objects.equals(outerResult, Marker.N)) {returnCode = 2;} // if condition is if the outer game is completed, updates return code
         }
         return returnCode;
     }
 
-    public Marker checkWinner(Marker[] board) {
+    public Marker checkWinner(Marker[] board, Marker tieMarker) {
         /*
             Checks the rows, columns, and diagonals for the winning marker, or if there is a tie
                 The private helper methods will return the winning marker if it exists, and the neither marker otherwise
@@ -144,7 +148,7 @@ public class Board {
         }
 
         // Check for tie
-        if (isTie(board)) {
+        if (isTie(board, tieMarker)) {
             return Marker.T; // Tie
         }
 
@@ -180,9 +184,11 @@ public class Board {
         return Marker.N; // No winner in diagonals
     }
 
-    private boolean isTie(Marker[] board) {
+    private boolean isTie(Marker[] board, Marker tieMarker) {
+        // tieMarker is for checking the board win.
+        // Inner games check for the Blank marker, the board win generated array is populated instead with Neither markers
         for (Marker cell : board) {
-            if (Objects.equals(cell, Marker.B)) {
+            if (Objects.equals(cell, tieMarker)) {
                 return false; // There is an empty cell, game not tied yet
             }
         }
