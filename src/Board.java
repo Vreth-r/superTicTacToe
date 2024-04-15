@@ -93,7 +93,11 @@ public class Board {
         // Only run if inserting into empty space in non won board
         if (!isPositionPlayable(posOuter, posInner)) {return false;}
         this.board[posOuter][posInner] = marker; // Edit board
-        this.gameToPlay = posInner; // Set the game to play
+        if(!Objects.equals(this.board[posInner][9], Marker.N)){ // If game to be played is completed
+            this.gameToPlay = -1;
+        } else {
+            this.gameToPlay = posInner; // Set the game to play
+        }
         return true;
     }
 
