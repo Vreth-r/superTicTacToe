@@ -15,7 +15,6 @@ public class ST3GUI extends JFrame implements ActionListener {
     private ToggleSwitch<Color> winColor;
     private ToggleSwitch<Color> activeColor;
     private int status; // Used for board status checking
-    private boolean gameDone;
 
     public ST3GUI() {
         setTitle("Super Tic Tac Toe");
@@ -33,7 +32,6 @@ public class ST3GUI extends JFrame implements ActionListener {
         this.turn = new ToggleSwitch<Board.Marker>(Board.Marker.X, Board.Marker.O);
         this.turnColor = new ToggleSwitch<Color>(Color.red, Color.blue);
         this.winColor = new ToggleSwitch<Color>(Color.pink, Color.cyan);
-        this.gameDone = false;
 
         // Initialize the main board
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -58,29 +56,30 @@ public class ST3GUI extends JFrame implements ActionListener {
             Listens for actions on the GUI, will be a button press
         */
         JButton button = (JButton) e.getSource(); // Get whatever button was clicked
+        //if(!button.isEnabled()){return;} // Stops any button click if the button isnt enabled
         int gameToPlay;
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++){
-                if(button == this.buttons[i][j] && !gameDone){ // Find co-ords of button clicked for cross-referencing into board object
+                if(button == this.buttons[i][j]){ // Find co-ords of button clicked for cross-referencing into board object
                     if(this.board.setPosition(i, j, this.turn.getValue())){ // Attempt to set position
                         this.status = this.board.isGameDone(i); // Grab the game status
                         this.smString = this.turn.getInverseValue() + "'s Turn"; // Set turn message
                         button.setText(this.turn.getValue().getValue()); // Set X or O on board
+
                         if(this.status == 1){ // If an inner game completed
-                            for(int k = 0; k < 9; k++){ // Flip all buttons in the game to the win color and disable them
-                                this.buttons[i][k].setBackground(winColor.getValue());
-                                this.buttons[i][k].setEnabled(false);
-                            }
+                            winGameVisuals(i, this.winColor.getValue());
                             this.smString = this.turn.getValue() + " wins a game!";
+
                         } else if(this.status == 2) { // If the board is completed
+                            winGameVisuals(i, this.winColor.getValue());
                             for(int k = 0; k < BOARD_SIZE; k++) {
                                 for (int l = 0; l < BOARD_SIZE; l++) {
                                     this.buttons[k][l].setEnabled(false); // Disable all buttons
                                 }
-                                this.gameDone = true; // Flags the game to be done
-                                this.smString = this.turn.getValue() + " wins the board!";
                             }
-                            break; // Get out of the loop to not execute the standard position set path
+                            this.statusMessage.setText(this.turn.getValue() + " wins the board!");
+                            return; // Get out of the loop to not execute the standard position set path
+
                         } else { // Else if just a position was set
                             button.setBackground(this.turnColor.getValue());
                             button.setEnabled(false); // turn button off once pressed
@@ -88,30 +87,62 @@ public class ST3GUI extends JFrame implements ActionListener {
 
                         gameToPlay = this.board.getGameToPlay();
                         // Set all active but unplayable buttons to grey, set playable active buttons to green
-                        for(int k = 0; k < 9; k++){
-                            for(int l = 0; l < 9; l++){
-                                if(gameToPlay == -1){
-                                    if(this.buttons[k][l].isEnabled()) {this.buttons[k][l].setBackground(Color.green);}
-                                } else {
-                                    if (this.buttons[k][l].isEnabled()) {this.buttons[k][l].setBackground(Color.lightGray);} // Reset a button to grey if its active (not played)
-                                }
-                            }
-                        }
-
-                        for(int k = 0; k < 9; k++){
-                            if (gameToPlay > -1 && this.buttons[gameToPlay][k].isEnabled()) {this.buttons[gameToPlay][k].setBackground(Color.green);}
-                        }
-                        this.turn.toggle(); // Flip turn
-                        this.turnColor.toggle(); // Flip color
-                        this.winColor.toggle(); // Flip win color
+                        setNonPlayable(true);
+                        setPlayable(gameToPlay);
+                        toggleSwitches();
                         this.statusMessage.setText(smString); // Set turn message
                     } else { // If invalid
                         this.statusMessage.setText("Invalid move, try again");
                     }
-                    break; // don't need to look at other buttons if already found
+                    return; // don't need to look at other buttons if already found
                 }
             }
         }
+    }
+
+    private void setPlayable(int outerPos){
+        // Scans the given game for active buttons and sets them to green
+        if(outerPos == -1){
+            for(int i = 0; i < 9; i++){
+                for(int j = 0; j < 9; j++) {
+                    if (this.buttons[i][j].isEnabled()) {
+                        this.buttons[i][j].setBackground(Color.green);
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < 9; i++) {
+                if (this.buttons[outerPos][i].isEnabled()) {
+                    this.buttons[outerPos][i].setBackground(Color.green);
+                }
+            }
+        }
+    }
+
+    private void setNonPlayable(boolean enableStatus){
+        // Scans the whole board for active buttons and greys them out
+        for(int i = 0; i < 9; i++){
+            for(int j = 0; j < 9; j++) {
+                if (this.buttons[i][j].isEnabled()) {
+                    this.buttons[i][j].setBackground(Color.lightGray);
+                    this.buttons[i][j].setEnabled(enableStatus);
+                }
+            }
+        }
+    }
+
+    private void winGameVisuals(int innerPos, Color color){
+        // Sets a whole inner game to a color
+        for(int i = 0; i < 9; i++){
+            this.buttons[innerPos][i].setBackground(color);
+            this.buttons[innerPos][i].setEnabled(false);
+        }
+    }
+
+    private void toggleSwitches(){
+        this.turn.toggle(); // Flip turn
+        this.turnColor.toggle(); // Flip color
+        this.winColor.toggle(); // Flip win color
     }
 }
 

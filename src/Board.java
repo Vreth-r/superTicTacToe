@@ -3,6 +3,7 @@ import java.util.Objects;
 public class Board {
     Marker[][] board = new Marker[9][10];
     int gameToPlay;
+    int lastPosPlayed;
 
     public enum Marker{
         B("_"), X("X"), O("O"), T("Tie"), N("Neither");
@@ -42,6 +43,7 @@ public class Board {
         }
 
         this.gameToPlay = -1; // Keeps track of the last inner game, -1 means any game can be played in
+        this.lastPosPlayed = -1; // Keeps track of the last pos played for when inner games are won
     }
 
     public void displayBoard() {
@@ -98,6 +100,7 @@ public class Board {
         } else {
             this.gameToPlay = posInner; // Set the game to play
         }
+        this.lastPosPlayed = posInner;
         return true;
     }
 
@@ -115,7 +118,9 @@ public class Board {
 
         if(!Objects.equals(result, Marker.N)){ // If the inner game is won
             returnCode = 1;
-            this.gameToPlay = -1;
+            if(this.lastPosPlayed == posOuter){
+                this.gameToPlay = -1;
+            }
             this.board[posOuter][9] = result; // Dump the winners marker into the status index
 
             Marker[] outerGamesResults = new Marker[9]; // Check the outer game status
