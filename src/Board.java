@@ -4,6 +4,7 @@ public class Board {
     Marker[][] board = new Marker[9][10];
     int gameToPlay;
     int lastPosPlayed;
+    int[] winningGames = new int[3];
 
     public enum Marker{
         B("_"), X("X"), O("O"), T("Tie"), N("Neither");
@@ -37,34 +38,17 @@ public class Board {
          */
         for (int i = 0; i <= 8; i++) {
             for (int j = 0; j <= 8; j++) {
-                this.board[i][j] = Marker.B;
+                board[i][j] = Marker.B;
             }
-            this.board[i][9] = Marker.N;
+            board[i][9] = Marker.N;
         }
 
-        this.gameToPlay = -1; // Keeps track of the last inner game, -1 means any game can be played in
-        this.lastPosPlayed = -1; // Keeps track of the last pos played for when inner games are won
-    }
-
-    public void displayBoard() {
-        /*
-            Print out the board in readable text format
-            TO BE DELETED
-        */
-        System.out.println("\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀");
-        for (int i = 0; i <= 8; i += 3) { // Loop games in groups of 3 (outer list)
-            for (int j = 0; j <= 8; j += 3) {
-                System.out.println(
-                        this.board[i][j].getValue() + " " + this.board[i][j + 1].getValue() + " " + this.board[i][j + 2].getValue() + " █ " +
-                                this.board[i + 1][j].getValue() + " " + this.board[i + 1][j + 1].getValue() + " " + this.board[i + 1][j + 2].getValue() + " █ " +
-                                this.board[i + 2][j].getValue() + " " + this.board[i + 2][j + 1].getValue() + " " + this.board[i + 2][j + 2].getValue());
-            }
-            System.out.println("▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀");
-        }
+        gameToPlay = -1; // Keeps track of the last inner game, -1 means any game can be played in
+        lastPosPlayed = -1; // Keeps track of the last pos played for when inner games are won
     }
 
     public int getGameToPlay(){
-        return this.gameToPlay;
+        return gameToPlay;
     }
 
     public boolean isPositionPlayable(int posOuter, int posInner) {
@@ -76,8 +60,8 @@ public class Board {
 
 
         */
-        boolean isSpaceEmpty = Objects.equals(this.board[posOuter][posInner], Marker.B) && Objects.equals(this.board[posOuter][9], Marker.N);
-        boolean validGame = this.gameToPlay == -1 || this.gameToPlay == posOuter; // is it the first turn or is this game the game to play
+        boolean isSpaceEmpty = Objects.equals(board[posOuter][posInner], Marker.B) && Objects.equals(board[posOuter][9], Marker.N);
+        boolean validGame = gameToPlay == -1 || gameToPlay == posOuter; // is it the first turn or is this game the game to play
         return isSpaceEmpty && validGame;
 
     }
@@ -94,13 +78,13 @@ public class Board {
 
         // Only run if inserting into empty space in non won board
         if (!isPositionPlayable(posOuter, posInner)) {return false;}
-        this.board[posOuter][posInner] = marker; // Edit board
-        if(!Objects.equals(this.board[posInner][9], Marker.N)){ // If game to be played is completed
-            this.gameToPlay = -1;
+        board[posOuter][posInner] = marker; // Edit board
+        if(!Objects.equals(board[posInner][9], Marker.N)){ // If game to be played is completed
+            gameToPlay = -1;
         } else {
-            this.gameToPlay = posInner; // Set the game to play
+            gameToPlay = posInner; // Set the game to play
         }
-        this.lastPosPlayed = posInner;
+        lastPosPlayed = posInner;
         return true;
     }
 
@@ -109,27 +93,37 @@ public class Board {
             Checks an inner game for completion,
                 if complete, check if the entire board is complete
                 return 0 if the inner game didnt complete
-                return 1 if the inner game is complete
-                return 2 if the outer board is complete
+                return 1 if the inner game is won
+                return 2 if the outer board is won
+                return 3 if the inner game is tied
+                return 4 if the outer boars is tied
             posOuter: Outer/big board game, 0-8
         */
         int returnCode = 0;
-        Marker result = checkWinner(this.board[posOuter], Marker.B); // Checks for inner game win
-
-        if(!Objects.equals(result, Marker.N)){ // If the inner game is won
-            returnCode = 1;
-            if(this.lastPosPlayed == posOuter){
-                this.gameToPlay = -1;
+        Marker result = checkWinner(board[posOuter], Marker.B); // Checks for inner game win
+        if(!Objects.equals(result, Marker.N)) { // If the inner game is won
+            if(Objects.equals(result, Marker.T)) {
+                returnCode = 3;
+            } else {
+                returnCode = 1;
             }
-            this.board[posOuter][9] = result; // Dump the winners marker into the status index
+            if(lastPosPlayed == posOuter){
+                gameToPlay = -1;
+            }
+            board[posOuter][9] = result; // Dump the winners marker into the status index
 
             Marker[] outerGamesResults = new Marker[9]; // Check the outer game status
 
             for(int i = 0; i <= 8; i++){ // Grab all results of games
-                outerGamesResults[i] = this.board[i][9];
+                outerGamesResults[i] = board[i][9];
             }
             Marker outerResult = checkWinner(outerGamesResults, Marker.N);
-            if(!Objects.equals(outerResult, Marker.N)) {returnCode = 2;} // if condition is if the outer game is completed, updates return code
+            if(Objects.equals(outerResult, Marker.T)) {
+                returnCode = 4; // return if tie
+            } else if(!Objects.equals(outerResult, Marker.N)) {
+                returnCode = 2; // return if outer game is won
+
+            }
         }
         return returnCode;
     }
@@ -142,17 +136,17 @@ public class Board {
             board: a Marker list, will either be an inner game or a list containing all the status of the inner games
          */
         Marker winner = checkRows(board);
-        if (!Objects.equals(winner, Marker.N)) {
+        if (!Objects.equals(winner, Marker.N) && !Objects.equals(winner, Marker.T)) {
             return winner;
         }
 
         winner = checkColumns(board);
-        if (!Objects.equals(winner, Marker.N)) {
+        if (!Objects.equals(winner, Marker.N) && !Objects.equals(winner, Marker.T)) {
             return winner;
         }
 
         winner = checkDiagonals(board);
-        if (!Objects.equals(winner, Marker.N)) {
+        if (!Objects.equals(winner, Marker.N) && !Objects.equals(winner, Marker.T)) {
             return winner;
         }
 
@@ -168,6 +162,7 @@ public class Board {
         for (int i = 0; i < 3; i++) {
             int startIndex = i * 3;
             if (!Objects.equals(board[startIndex], Marker.B) && Objects.equals(board[startIndex], board[startIndex + 1]) && Objects.equals(board[startIndex], board[startIndex + 2])) {
+                winningGames[0] = startIndex; winningGames[1] = startIndex + 1; winningGames[2] = startIndex + 2;
                 return board[startIndex]; // Return the winning player marker
             }
         }
@@ -177,6 +172,7 @@ public class Board {
     private Marker checkColumns(Marker[] board) {
         for (int i = 0; i < 3; i++) {
             if (!Objects.equals(board[i], Marker.B) && Objects.equals(board[i], board[i + 3]) && Objects.equals(board[i], board[i + 6])) {
+                winningGames[0] = i; winningGames[1] = i + 3; winningGames[2] = i + 6;
                 return board[i]; // Return the winning player marker
             }
         }
@@ -185,9 +181,11 @@ public class Board {
 
     private Marker checkDiagonals(Marker[] board) {
         if (!Objects.equals(board[0], Marker.B) && Objects.equals(board[0], board[4]) && Objects.equals(board[0], board[8])) {
+            winningGames[0] = 0; winningGames[1] = 4; winningGames[2] = 8;
             return board[0]; // Return the winning player marker
         }
         if (!Objects.equals(board[2], Marker.B) && Objects.equals(board[2], board[4]) && Objects.equals(board[2], board[6])) {
+            winningGames[0] = 2; winningGames[1] = 4; winningGames[2] = 6;
             return board[2]; // Return the winning player marker
         }
         return Marker.N; // No winner in diagonals
