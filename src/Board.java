@@ -135,17 +135,17 @@ public class Board {
                 This allows this method to check the inner games and the outer game
             board: a Marker list, will either be an inner game or a list containing all the status of the inner games
          */
-        Marker winner = checkRows(board);
+        Marker winner = checkRows(board, tieMarker);
         if (!Objects.equals(winner, Marker.N) && !Objects.equals(winner, Marker.T)) {
             return winner;
         }
 
-        winner = checkColumns(board);
+        winner = checkColumns(board, tieMarker);
         if (!Objects.equals(winner, Marker.N) && !Objects.equals(winner, Marker.T)) {
             return winner;
         }
 
-        winner = checkDiagonals(board);
+        winner = checkDiagonals(board, tieMarker);
         if (!Objects.equals(winner, Marker.N) && !Objects.equals(winner, Marker.T)) {
             return winner;
         }
@@ -158,10 +158,10 @@ public class Board {
         return Marker.N; // No winner yet
     }
 
-    private Marker checkRows(Marker[] board) {
+    private Marker checkRows(Marker[] board, Marker emptySpace) {
         for (int i = 0; i < 3; i++) {
             int startIndex = i * 3;
-            if (!Objects.equals(board[startIndex], Marker.B) && Objects.equals(board[startIndex], board[startIndex + 1]) && Objects.equals(board[startIndex], board[startIndex + 2])) {
+            if (!Objects.equals(board[startIndex], emptySpace) && Objects.equals(board[startIndex], board[startIndex + 1]) && Objects.equals(board[startIndex], board[startIndex + 2])) {
                 winningGames[0] = startIndex; winningGames[1] = startIndex + 1; winningGames[2] = startIndex + 2;
                 return board[startIndex]; // Return the winning player marker
             }
@@ -169,9 +169,9 @@ public class Board {
         return Marker.N; // No winner in rows
     }
 
-    private Marker checkColumns(Marker[] board) {
+    private Marker checkColumns(Marker[] board, Marker emptySpace) {
         for (int i = 0; i < 3; i++) {
-            if (!Objects.equals(board[i], Marker.B) && Objects.equals(board[i], board[i + 3]) && Objects.equals(board[i], board[i + 6])) {
+            if (!Objects.equals(board[i], emptySpace) && Objects.equals(board[i], board[i + 3]) && Objects.equals(board[i], board[i + 6])) {
                 winningGames[0] = i; winningGames[1] = i + 3; winningGames[2] = i + 6;
                 return board[i]; // Return the winning player marker
             }
@@ -179,12 +179,12 @@ public class Board {
         return Marker.N; // No winner in columns
     }
 
-    private Marker checkDiagonals(Marker[] board) {
-        if (!Objects.equals(board[0], Marker.B) && Objects.equals(board[0], board[4]) && Objects.equals(board[0], board[8])) {
+    private Marker checkDiagonals(Marker[] board, Marker emptySpace) {
+        if (!Objects.equals(board[0], emptySpace) && Objects.equals(board[0], board[4]) && Objects.equals(board[0], board[8])) {
             winningGames[0] = 0; winningGames[1] = 4; winningGames[2] = 8;
             return board[0]; // Return the winning player marker
         }
-        if (!Objects.equals(board[2], Marker.B) && Objects.equals(board[2], board[4]) && Objects.equals(board[2], board[6])) {
+        if (!Objects.equals(board[2], emptySpace) && Objects.equals(board[2], board[4]) && Objects.equals(board[2], board[6])) {
             winningGames[0] = 2; winningGames[1] = 4; winningGames[2] = 6;
             return board[2]; // Return the winning player marker
         }
